@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Vehicles{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">My Vehicles</h4>
+  <a href="{{ url_for('vehicles.add_vehicle') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> Add Vehicle
+  </a>
+</div>
+
+{% if vehicles %}
+<div class="row g-3">
+  {% for v in vehicles %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="card-title mb-1">{{ v.registration_number }}</h5>
+            <p class="text-muted mb-2">
+              {% if v.make %}{{ v.make }}{% endif %}
+              {% if v.model %} {{ v.model }}{% endif %}
+              {% if v.year %} ({{ v.year }}){% endif %}
+            </p>
+          </div>
+          <span class="badge bg-secondary">{{ (v.vehicle_type or 'N/A')|capitalize }}</span>
+        </div>
+        {% if v.fuel_type %}
+        <p class="mb-2"><small><i class="bi bi-fuel-pump"></i> {{ v.fuel_type|capitalize }}</small></p>
+        {% endif %}
+        <div class="d-flex gap-2 mb-2">
+          <span class="badge bg-info">{{ v.documents|length }} docs</span>
+          {% set nearest = v.nearest_expiry %}
+          {% if nearest %}
+            {% set days = nearest.days_remaining %}
+            {% if days is not none and days < 0 %}
+              <span class="badge bg-danger">{{ nearest.doc_type_label }}: Expired</span>
+            {% elif days is not none and days <= 30 %}
+              <span class="badge bg-warning text-dark">{{ nearest.doc_type_label }}: {{ days }}d left</span>
+            {% elif days is not none %}
+              <span class="badge bg-success">Next expiry: {{ days }}d</span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-footer bg-transparent d-flex gap-2">
+        <a href="{{ url_for('documents.list_documents', vehicle_id=v.id) }}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-file-earmark-text"></i> Documents
+        </a>
+        <a href="{{ url_for('vehicles.edit_vehicle', id=v.id) }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form method="POST" action="{{ url_for('vehicles.delete_vehicle', id=v.id) }}"
+              onsubmit="return confirm('Delete this vehicle and all its documents?')">
+          <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-car-front fs-1"></i>
+  <p class="mt-2">No vehicles yet. <a href="{{ url_for('vehicles.add_vehicle') }}">Add your first vehicle</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if vehicle else 'Add' }} Vehicle{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <h4 class="mb-4">{{ 'Edit' if vehicle else 'Add' }} Vehicle</h4>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Registration Number <span class="text-danger">*</span></label>
+            <input type="text" name="registration_number" class="form-control text-uppercase"
+                   value="{{ vehicle.registration_number if vehicle else '' }}"
+                   placeholder="MH01AB1234" required>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Make</label>
+              <input type="text" name="make" class="form-control"
+                     value="{{ vehicle.make if vehicle else '' }}" placeholder="e.g. Maruti, Tata">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Model</label>
+              <input type="text" name="model" class="form-control"
+                     value="{{ vehicle.model if vehicle else '' }}" placeholder="e.g. Swift, Nexon">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Year</label>
+              <input type="number" name="year" class="form-control" min="1990" max="2030"
+                     value="{{ vehicle.year if vehicle and vehicle.year else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Vehicle Type</label>
+              <select name="vehicle_type" class="form-select">
+                <option value="">-- Select --</option>
+                {% for vt in vehicle_types %}
+                <option value="{{ vt }}" {{ 'selected' if vehicle and vehicle.vehicle_type == vt }}>{{ vt|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fuel Type</label>
+              <select name="fuel_type" class="form-select">
+                <option value="">-- Select --</option>
+                {% for ft in fuel_types %}
+                <option value="{{ ft }}" {{ 'selected' if vehicle and vehicle.fuel_type == ft }}>{{ ft|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2">{{ vehicle.notes if vehicle else '' }}</textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> {{ 'Update' if vehicle else 'Add Vehicle' }}
+            </button>
+            <a href="{{ url_for('vehicles.list_vehicles') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if editing else 'Upload' }} Document{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h4 class="mb-4">{{ 'Edit' if editing else 'Upload' }} Document</h4>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST" {% if not editing %}enctype="multipart/form-data"{% endif %}>
+          {% if not editing %}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Vehicle <span class="text-danger">*</span></label>
+              <select name="vehicle_id" class="form-select" required>
+                <option value="">-- Select Vehicle --</option>
+                {% for v in vehicles %}
+                <option value="{{ v.id }}"
+                  {{ 'selected' if (doc and doc.vehicle_id == v.id) or (preselect_vehicle and preselect_vehicle == v.id) }}>
+                  {{ v.registration_number }} {% if v.make %}({{ v.make }} {{ v.model or '' }}){% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Document Type <span class="text-danger">*</span></label>
+              <select name="doc_type" class="form-select" required>
+                <option value="">-- Select Type --</option>
+                {% for dt in doc_types %}
+                <option value="{{ dt }}" {{ 'selected' if doc and doc.doc_type == dt }}>
+                  {{ doc_type_labels[dt] }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Upload File (PDF, JPG, PNG)</label>
+            <input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+            <div class="form-text">Upload an image for OCR expiry date extraction.</div>
+          </div>
+          {% else %}
+          <div class="mb-3">
+            <label class="form-label">Vehicle</label>
+            <input type="text" class="form-control" value="{{ doc.vehicle.registration_number }}" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Document Type</label>
+            <input type="text" class="form-control" value="{{ doc.doc_type_label }}" disabled>
+          </div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Document Number</label>
+              <input type="text" name="doc_number" class="form-control"
+                     value="{{ doc.doc_number if doc else '' }}" placeholder="e.g. Policy number, DL number">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Issuer</label>
+              <input type="text" name="issuer" class="form-control"
+                     value="{{ doc.issuer if doc else '' }}" placeholder="e.g. LIC, New India, RTO">
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Issue Date</label>
+              <input type="date" name="issue_date" class="form-control"
+                     value="{{ doc.issue_date.strftime('%Y-%m-%d') if doc and doc.issue_date else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Expiry Date</label>
+              <input type="date" name="expiry_date" class="form-control" id="expiry_date"
+                     value="{{ doc.expiry_date.strftime('%Y-%m-%d') if doc and doc.expiry_date else '' }}">
+              {% if doc and doc.ocr_extracted_date %}
+              <div class="form-text text-info">
+                <i class="bi bi-robot"></i> OCR detected: {{ doc.ocr_extracted_date }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Reminder Days Before Expiry</label>
+              <input type="number" name="reminder_days" class="form-control" min="1" max="365"
+                     value="{{ doc.reminder_days if doc else 30 }}">
+            </div>
+          </div>
+
+          {% if editing %}
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="active" {{ 'selected' if doc.status == 'active' }}>Active</option>
+              <option value="expired" {{ 'selected' if doc.status == 'expired' }}>Expired</option>
+              <option value="renewed" {{ 'selected' if doc.status == 'renewed' }}>Renewed</option>
+            </select>
+          </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2">{{ doc.notes if doc else '' }}</textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> {{ 'Update' if editing else 'Upload Document' }}
+            </button>
+            <a href="{{ url_for('documents.list_documents') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

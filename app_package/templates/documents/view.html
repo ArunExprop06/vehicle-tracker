@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.doc_type_label }} - {{ doc.vehicle.registration_number }}{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1">{{ doc.doc_type_label }}</h4>
+        <p class="text-muted mb-0">{{ doc.vehicle.registration_number }}
+          {% if doc.vehicle.make %} - {{ doc.vehicle.make }} {{ doc.vehicle.model or '' }}{% endif %}
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('documents.edit_document', id=doc.id) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <form method="POST" action="{{ url_for('documents.delete_document', id=doc.id) }}"
+              onsubmit="return confirm('Delete this document?')">
+          <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Document Details -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Document Number</small>
+            <strong>{{ doc.doc_number or '-' }}</strong>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Issuer</small>
+            <strong>{{ doc.issuer or '-' }}</strong>
+          </div>
+          <div class="col-sm-4">
+            <small class="text-muted d-block">Issue Date</small>
+            <strong>{{ doc.issue_date.strftime('%d %b %Y') if doc.issue_date else '-' }}</strong>
+          </div>
+          <div class="col-sm-4">
+            <small class="text-muted d-block">Expiry Date</small>
+            <strong>{{ doc.expiry_date.strftime('%d %b %Y') if doc.expiry_date else '-' }}</strong>
+          </div>
+          <div class="col-sm-4">
+            <small class="text-muted d-block">Days Remaining</small>
+            {% set days = doc.days_remaining %}
+            {% if days is not none %}
+              {% if days < 0 %}
+                <span class="badge bg-danger fs-6">{{ days|abs }} days overdue</span>
+              {% elif days == 0 %}
+                <span class="badge bg-danger fs-6">Expires today</span>
+              {% elif days <= 30 %}
+                <span class="badge bg-warning text-dark fs-6">{{ days }} days left</span>
+              {% else %}
+                <span class="badge bg-success fs-6">{{ days }} days left</span>
+              {% endif %}
+            {% else %}
+              <strong>-</strong>
+            {% endif %}
+          </div>
+          <div class="col-sm-4">
+            <small class="text-muted d-block">Status</small>
+            <span class="badge bg-{{ 'success' if doc.status == 'active' else ('danger' if doc.status == 'expired' else 'secondary') }}">
+              {{ doc.status|capitalize }}
+            </span>
+          </div>
+          <div class="col-sm-4">
+            <small class="text-muted d-block">Reminder</small>
+            <strong>{{ doc.reminder_days }} days before expiry</strong>
+          </div>
+          {% if doc.ocr_extracted_date %}
+          <div class="col-sm-4">
+            <small class="text-muted d-block">OCR Detected Date</small>
+            <strong><i class="bi bi-robot"></i> {{ doc.ocr_extracted_date }}</strong>
+          </div>
+          {% endif %}
+          {% if doc.notes %}
+          <div class="col-12">
+            <small class="text-muted d-block">Notes</small>
+            <p class="mb-0">{{ doc.notes }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- File Preview -->
+    {% if doc.file_path %}
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-file-earmark"></i> Uploaded File</h6>
+      </div>
+      <div class="card-body text-center">
+        {% if doc.file_type in ('jpg', 'png', 'jpeg') %}
+          <img src="{{ url_for('documents.serve_file', filename=doc.file_path) }}"
+               class="img-fluid rounded" style="max-height: 600px;" alt="Document">
+        {% elif doc.file_type == 'pdf' %}
+          <embed src="{{ url_for('documents.serve_file', filename=doc.file_path) }}"
+                 type="application/pdf" width="100%" height="600px">
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
