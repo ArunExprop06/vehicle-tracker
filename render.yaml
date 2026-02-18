@@ -26,4 +26,4 @@ services:
 
 databases:
   - name: vehicle-tracker-db
-    plan: basic
+    plan: basic-256mb
