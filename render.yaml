@@ -26,4 +26,4 @@ services:
 
 databases:
   - name: vehicle-tracker-db
-    plan: free
+    plan: basic
